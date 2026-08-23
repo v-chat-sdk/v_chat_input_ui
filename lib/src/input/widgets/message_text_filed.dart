@@ -19,7 +19,15 @@ class MessageTextFiled extends StatefulWidget {
   final VoidCallback onShowEmoji;
   final VoidCallback onCameraPress;
   final VoidCallback onAttachFilePress;
+  final VoidCallback onInputTap;
   final Function(String value) onSubmit;
+  final bool showEmojiButton;
+  final bool showCameraButton;
+  final bool showAttachmentButton;
+  final String emojiButtonLabel;
+  final String cameraButtonLabel;
+  final String attachmentButtonLabel;
+  final Widget attachmentIcon;
 
   const MessageTextFiled({
     super.key,
@@ -28,10 +36,18 @@ class MessageTextFiled extends StatefulWidget {
     required this.onShowEmoji,
     required this.onCameraPress,
     required this.onAttachFilePress,
+    required this.onInputTap,
     required this.isTyping,
     required this.autofocus,
     required this.hint,
     required this.onSubmit,
+    required this.showEmojiButton,
+    required this.showCameraButton,
+    required this.showAttachmentButton,
+    required this.emojiButtonLabel,
+    required this.cameraButtonLabel,
+    required this.attachmentButtonLabel,
+    required this.attachmentIcon,
   });
 
   @override
@@ -59,33 +75,33 @@ class _MessageTextFiledState extends State<MessageTextFiled> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment:
-          isMultiLine ? CrossAxisAlignment.end : CrossAxisAlignment.center,
+      crossAxisAlignment: isMultiLine
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.center,
       children: [
-        GestureDetector(
-          onTap: widget.onShowEmoji,
-          child: Padding(
+        if (widget.showEmojiButton)
+          Padding(
             padding: isMultiLine
                 ? const EdgeInsets.only(bottom: 8)
                 : EdgeInsets.zero,
-            child: context.vInputTheme.emojiIcon,
+            child: _InputActionButton(
+              label: widget.emojiButtonLabel,
+              onPressed: widget.onShowEmoji,
+              icon: context.vInputTheme.emojiIcon!,
+            ),
           ),
-        ),
-        const SizedBox(
-          width: 4,
-        ),
+        if (widget.showEmojiButton) const SizedBox(width: 4),
         Expanded(
           child: AutoDirection(
             text: txt,
             child: CupertinoTextField(
-              decoration: const BoxDecoration(
-                color: Colors.transparent,
-              ),
+              decoration: const BoxDecoration(color: Colors.transparent),
               placeholder: widget.hint,
               textCapitalization: TextCapitalization.sentences,
               controller: widget.textEditingController,
               focusNode: widget.focusNode,
               autofocus: widget.autofocus,
+              onTap: widget.onInputTap,
               maxLines: 5,
               onChanged: (value) {
                 setState(() {
@@ -98,23 +114,21 @@ class _MessageTextFiledState extends State<MessageTextFiled> {
               onSubmitted: VPlatforms.isMobile
                   ? null
                   : (value) {
-                      if (value.isNotEmpty) {
+                      if (value.trim().isNotEmpty) {
                         widget.onSubmit(value);
                       }
                       widget.focusNode.requestFocus();
-                      widget.textEditingController.clear();
                     },
-              textInputAction:
-                  !VPlatforms.isMobile ? null : TextInputAction.newline,
+              textInputAction: VPlatforms.isMobile
+                  ? TextInputAction.newline
+                  : TextInputAction.send,
               keyboardType: VPlatforms.isMobile
                   ? TextInputType.multiline
                   : TextInputType.text,
             ),
           ),
         ),
-        const SizedBox(
-          width: 3,
-        ),
+        const SizedBox(width: 3),
         Visibility(
           visible: !widget.isTyping,
           child: Padding(
@@ -123,27 +137,29 @@ class _MessageTextFiledState extends State<MessageTextFiled> {
                 : EdgeInsets.zero,
             child: Row(
               children: [
-                if (VPlatforms.isMobile)
-                  GestureDetector(
-                    onTap: widget.onCameraPress,
-                    child: context.vInputTheme.cameraIcon,
+                if (VPlatforms.isMobile && widget.showCameraButton)
+                  _InputActionButton(
+                    label: widget.cameraButtonLabel,
+                    onPressed: widget.onCameraPress,
+                    icon: context.vInputTheme.cameraIcon!,
                   ),
-                const SizedBox(
-                  width: 10,
-                ),
+                if (VPlatforms.isMobile && widget.showCameraButton)
+                  const SizedBox(width: 4),
               ],
             ),
           ),
         ),
-        GestureDetector(
-          onTap: widget.onAttachFilePress,
-          child: Padding(
+        if (widget.showAttachmentButton)
+          Padding(
             padding: isMultiLine
                 ? const EdgeInsets.only(bottom: 8)
                 : EdgeInsets.zero,
-            child: context.vInputTheme.fileIcon,
+            child: _InputActionButton(
+              label: widget.attachmentButtonLabel,
+              onPressed: widget.onAttachFilePress,
+              icon: widget.attachmentIcon,
+            ),
           ),
-        ),
       ],
     );
   }
@@ -155,5 +171,29 @@ class _MessageTextFiledState extends State<MessageTextFiled> {
         lines = count;
       });
     }
+  }
+}
+
+class _InputActionButton extends StatelessWidget {
+  const _InputActionButton({
+    required this.label,
+    required this.onPressed,
+    required this.icon,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final Widget icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: label,
+      onPressed: onPressed,
+      icon: icon,
+      padding: EdgeInsets.zero,
+      visualDensity: VisualDensity.compact,
+      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+    );
   }
 }

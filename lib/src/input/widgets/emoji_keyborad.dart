@@ -18,14 +18,12 @@ class EmojiKeyboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Offstage(
-      offstage: !isEmojiShowing,
-      child: SizedBox(
-        height: VPlatforms.isWeb ? MediaQuery.of(context).size.height / 3 : 250,
-        child: EmojiPicker(
-          textEditingController: controller,
-        ),
-      ),
+    if (!isEmojiShowing) {
+      return const SizedBox.shrink();
+    }
+    return SizedBox(
+      height: VPlatforms.isWeb ? MediaQuery.of(context).size.height / 3 : 250,
+      child: EmojiPicker(textEditingController: controller),
     );
   }
 }

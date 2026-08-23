@@ -11,7 +11,7 @@ abstract class AppRecorder {
 
   Future<String?> stop();
 
-  Future pause();
+  Future<void> pause();
 
   Future<bool> isRecording();
 
@@ -57,30 +57,29 @@ class PlatformRecorder extends AppRecorder {
   final recorder = AudioRecorder();
 
   @override
-  Future close() async {
+  Future<void> close() async {
     await recorder.dispose();
   }
 
   @override
-  Future pause() async {
+  Future<void> pause() async {
     await recorder.pause();
   }
 
   @override
   Future<void> start([String? path]) async {
-    var encoder =
-    const RecordConfig(encoder: AudioEncoder.aacLc, numChannels: 1);
+    var encoder = const RecordConfig(
+      encoder: AudioEncoder.aacLc,
+      numChannels: 1,
+    );
     if (kIsWeb) {
       encoder = const RecordConfig(encoder: AudioEncoder.opus);
     }
     if (VPlatforms.isMobile && path == null) {
-      throw "Path is required for mobile";
+      throw ArgumentError("A file path is required when recording on mobile.");
     }
 
-    await recorder.start(
-      encoder,
-      path: path ?? "",
-    );
+    await recorder.start(encoder, path: path ?? "");
   }
 
   @override

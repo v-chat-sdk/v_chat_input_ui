@@ -14,20 +14,27 @@ import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:uuid/uuid.dart';
 import 'package:v_chat_input_ui/src/recorder/recorders.dart';
 import 'package:v_chat_input_ui/src/v_widgets/extension.dart';
-import 'package:v_chat_input_ui/v_chat_input_ui.dart';
 import 'package:v_platform/v_platform.dart';
 
-import '../models/message_voice_data.dart';
+import '../models/models.dart';
 
 class RecordWidget extends StatefulWidget {
   final Duration maxTime;
   final VoidCallback onMaxTime;
+  final String cancelRecordingLabel;
+  final VRecordingWidgetBuilder? builder;
+
+  @visibleForTesting
+  final AppRecorder Function()? recorderFactory;
 
   const RecordWidget({
     super.key,
     required this.onCancel,
     required this.maxTime,
     required this.onMaxTime,
+    required this.cancelRecordingLabel,
+    this.builder,
+    this.recorderFactory,
   });
 
   final VoidCallback onCancel;
@@ -43,12 +50,13 @@ class RecordWidgetState extends State<RecordWidget> {
   final _uuid = const Uuid();
   AppRecorder? _recorder;
   StreamSubscription? _rawTime;
-  StreamSubscription? _minuteTime;
+  bool _hasReachedMaxTime = false;
+  bool _isClosed = false;
 
   @override
   void initState() {
     super.initState();
-    _recorder = PlatformRecorder();
+    _recorder = widget.recorderFactory?.call() ?? PlatformRecorder();
     _rawTime = _stopWatchTimer.rawTime.listen((value) {
       _recordMilli = value;
       _currentTime = StopWatchTimer.getDisplayTime(
@@ -59,11 +67,9 @@ class RecordWidgetState extends State<RecordWidget> {
       if (mounted) {
         setState(() {});
       }
-    });
-    _minuteTime = _stopWatchTimer.minuteTime.listen((value) {
-      if (value == widget.maxTime.inMinutes) {
-        pause();
-        // widget.onMaxTime();
+      if (!_hasReachedMaxTime && value >= widget.maxTime.inMilliseconds) {
+        _hasReachedMaxTime = true;
+        unawaited(_completeAtMaxTime());
       }
     });
     _start();
@@ -85,6 +91,13 @@ class RecordWidgetState extends State<RecordWidget> {
   Future<void> pause() async {
     _stopWatchTimer.onStopTimer();
     await _recorder?.pause();
+  }
+
+  Future<void> _completeAtMaxTime() async {
+    await pause();
+    if (mounted) {
+      widget.onMaxTime();
+    }
   }
 
   Future<String> _getDir() async {
@@ -115,9 +128,8 @@ class RecordWidgetState extends State<RecordWidget> {
     final path = await _recorder!.stop();
     if (path != null) {
       List<int>? bytes;
-      late final XFile? xFile;
       if (VPlatforms.isWeb) {
-        xFile = XFile(path);
+        final xFile = XFile(path);
         bytes = await xFile.readAsBytes();
       }
       final uri = Uri.parse(path);
@@ -125,21 +137,29 @@ class RecordWidgetState extends State<RecordWidget> {
         duration: _recordMilli,
         fileSource: VPlatforms.isWeb
             ? VPlatformFile.fromBytes(
-          name: "${DateTime.now().microsecondsSinceEpoch}.wave",
-          bytes: bytes!,
-        )
-            : VPlatformFile.fromPath(
-          fileLocalPath: uri.path,
-        ),
+                name: "${DateTime.now().microsecondsSinceEpoch}.webm",
+                bytes: bytes!,
+              )
+            : VPlatformFile.fromPath(fileLocalPath: uri.path),
       );
-      //await close();
       return data;
     }
-    throw "record path is null here ! while stop the record";
+    throw StateError("The recorder stopped without returning an audio file.");
   }
 
   @override
   Widget build(BuildContext context) {
+    final recordingState = VRecordingState(
+      elapsed: Duration(milliseconds: _recordMilli),
+      maxDuration: widget.maxTime,
+      elapsedLabel: _currentTime,
+      cancelLabel: widget.cancelRecordingLabel,
+    );
+    final builder = widget.builder;
+    if (builder != null) {
+      return builder(context, recordingState, widget.onCancel);
+    }
+
     return Padding(
       padding: const EdgeInsets.all(5),
       child: Column(
@@ -158,9 +178,7 @@ class RecordWidgetState extends State<RecordWidget> {
                 ),
               ),
 
-              const SizedBox(
-                width: 15,
-              ),
+              const SizedBox(width: 15),
               // if (_recorder is MobileRecorder)
               //   Expanded(
               //     child: AudioWaveforms(
@@ -169,23 +187,26 @@ class RecordWidgetState extends State<RecordWidget> {
               //     ),
               //   )
               // else
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
             ],
           ),
-          const SizedBox(
-            height: 15,
-          ),
+          const SizedBox(height: 15),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              GestureDetector(
-                onTap: () {
-                  // close();
-                  widget.onCancel();
-                },
-                child: context.vInputTheme.trashIcon,
+              Semantics(
+                button: true,
+                label: widget.cancelRecordingLabel,
+                child: Tooltip(
+                  message: widget.cancelRecordingLabel,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: widget.onCancel,
+                    child: ExcludeSemantics(
+                      child: context.vInputTheme.trashIcon,
+                    ),
+                  ),
+                ),
               ),
               // constGestureDetector(
               //   child: Icon(
@@ -194,7 +215,7 @@ class RecordWidgetState extends State<RecordWidget> {
               //     color: Colors.grey,
               //   ),
               // ),
-              const SizedBox()
+              const SizedBox(),
             ],
           ),
         ],
@@ -209,11 +230,12 @@ class RecordWidgetState extends State<RecordWidget> {
   }
 
   Future<void> close() async {
+    if (_isClosed) return;
+    _isClosed = true;
     _stopCounter();
     await _recorder?.stop();
     _stopWatchTimer.dispose();
     _rawTime?.cancel();
-    _minuteTime?.cancel();
     await _recorder?.close();
   }
 }

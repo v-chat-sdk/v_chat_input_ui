@@ -8,13 +8,10 @@ class MessageVoiceData {
   VPlatformFile fileSource;
   int duration;
 
-//<editor-fold desc="Data Methods">
+  //<editor-fold desc="Data Methods">
   Duration get durationObj => Duration(milliseconds: duration);
 
-  MessageVoiceData({
-    required this.fileSource,
-    required this.duration,
-  });
+  MessageVoiceData({required this.fileSource, required this.duration});
 
   @override
   bool operator ==(Object other) =>
@@ -32,10 +29,7 @@ class MessageVoiceData {
     return 'MessageVoiceData{ fileSource: $fileSource, duration: $duration,}';
   }
 
-  MessageVoiceData copyWith({
-    VPlatformFile? fileSource,
-    int? duration,
-  }) {
+  MessageVoiceData copyWith({VPlatformFile? fileSource, int? duration}) {
     return MessageVoiceData(
       fileSource: fileSource ?? this.fileSource,
       duration: duration ?? this.duration,
@@ -43,10 +37,7 @@ class MessageVoiceData {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      ...fileSource.toMap(),
-      'duration': duration,
-    };
+    return {...fileSource.toMap(), 'duration': duration};
   }
 
   factory MessageVoiceData.fromMap(
@@ -59,5 +50,5 @@ class MessageVoiceData {
     );
   }
 
-//</editor-fold>
+  //</editor-fold>
 }

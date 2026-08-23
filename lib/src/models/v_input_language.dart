@@ -5,23 +5,46 @@
 class VInputLanguage {
   final String textFieldHint;
   final String media;
+  final String camera;
   final String files;
   final String cancel;
   final String location;
   final String shareMediaAndLocation;
   final String thereIsVideoSizeBiggerThanAllowedSize;
   final String thereIsFileHasSizeBiggerThanAllowedSize;
+  final String emojiButtonLabel;
+  final String attachmentButtonLabel;
+  final String openAttachmentsButtonLabel;
+  final String cameraButtonLabel;
+  final String sendButtonLabel;
+  final String recordButtonLabel;
+  final String cancelRecordingButtonLabel;
+  final String attachmentPanelLabel;
+  final String returnToKeyboardButtonLabel;
+  final String closeAttachmentPanelButtonLabel;
 
   const VInputLanguage({
     this.textFieldHint = "Type your message...",
     this.media = "Media",
+    this.camera = "Camera",
     this.files = "Files",
     this.cancel = "Cancel",
     this.location = "Location",
     this.shareMediaAndLocation = "Share media and location",
     this.thereIsVideoSizeBiggerThanAllowedSize =
-        "There is video size bigger than allowed size",
+        "One or more media files exceed the allowed size",
     this.thereIsFileHasSizeBiggerThanAllowedSize =
-        "There is File has size bigger than allowed size",
-  });
+        "One or more files exceed the allowed size",
+    this.emojiButtonLabel = "Open emoji picker",
+    this.attachmentButtonLabel = "Add attachment",
+    String? openAttachmentsButtonLabel,
+    this.cameraButtonLabel = "Open camera",
+    this.sendButtonLabel = "Send message",
+    this.recordButtonLabel = "Record voice message",
+    this.cancelRecordingButtonLabel = "Cancel voice recording",
+    this.attachmentPanelLabel = "Attachment actions",
+    this.returnToKeyboardButtonLabel = "Show keyboard",
+    this.closeAttachmentPanelButtonLabel = "Close attachment actions",
+  }) : openAttachmentsButtonLabel =
+           openAttachmentsButtonLabel ?? attachmentButtonLabel;
 }

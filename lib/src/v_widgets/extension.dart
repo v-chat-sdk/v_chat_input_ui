@@ -8,12 +8,8 @@ extension MediaQueryExt2 on BuildContext {
   bool get isDark => CupertinoTheme.of(this).brightness == Brightness.dark;
   CupertinoTextThemeData get cupertinoTextTheme =>
       CupertinoTheme.of(this).textTheme;
-  Future<T?> toPage<T>(Widget page) => Navigator.push(
-        this,
-        CupertinoPageRoute(
-          builder: (context) => page,
-        ),
-      );
+  Future<T?> toPage<T>(Widget page) =>
+      Navigator.push(this, CupertinoPageRoute(builder: (context) => page));
 
   bool get isRtl => Directionality.of(this).name.toLowerCase() == "rtl";
 }

@@ -2,7 +2,7 @@
 // All rights reserved. Use of this source code is governed by a
 // MIT license that can be found in the LICENSE file.
 
-library auto_direction;
+library;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
@@ -41,7 +41,8 @@ class AutoDirectionState extends State<AutoDirection> {
   void didUpdateWidget(AutoDirection oldWidget) {
     if (isRTL(oldWidget.text) != isRTL(widget.text)) {
       WidgetsBinding.instance.addPostFrameCallback(
-          (_) => widget.onDirectionChange?.call(isRTL(widget.text)));
+        (_) => widget.onDirectionChange?.call(isRTL(widget.text)),
+      );
     }
     super.didUpdateWidget(oldWidget);
   }

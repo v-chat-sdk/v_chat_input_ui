@@ -11,32 +11,31 @@ abstract class VAppAlert {
     required String msg,
     required BuildContext context,
   }) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-      duration: const Duration(
-        seconds: 5,
-      ),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 5)),
+    );
   }
 
-  static Future<ModelSheetItem?> showModalSheet<T>({
+  static Future<ModelSheetItem<T>?> showModalSheet<T>({
     String? title,
-    required List<ModelSheetItem> content,
+    required List<ModelSheetItem<T>> content,
     required BuildContext context,
     required String cancelText,
   }) async {
-    return await adaptive_dialog.showModalActionSheet<ModelSheetItem?>(
+    return await adaptive_dialog.showModalActionSheet<ModelSheetItem<T>?>(
       context: context,
       title: title,
       style: AdaptiveStyle.iOS,
       cancelLabel: cancelText,
       isDismissible: true,
       actions: content
-          .map((e) => SheetAction<ModelSheetItem>(
-                label: e.title,
-                icon: e.iconData?.icon,
-                key: e,
-              ))
+          .map(
+            (e) => SheetAction<ModelSheetItem<T>>(
+              label: e.title,
+              icon: e.iconData?.icon,
+              key: e,
+            ),
+          )
           .toList(),
     );
   }
@@ -47,9 +46,5 @@ class ModelSheetItem<T> {
   final String title;
   final Icon? iconData;
 
-  ModelSheetItem({
-    required this.title,
-    required this.id,
-    this.iconData,
-  });
+  ModelSheetItem({required this.title, required this.id, this.iconData});
 }

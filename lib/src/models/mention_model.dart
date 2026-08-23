@@ -9,20 +9,17 @@ class MentionModel {
   final String name;
   final String image;
 
-  MentionModel({
+  const MentionModel({
     required this.peerId,
     required this.name,
     required this.image,
   });
 
-  String get imageS3 => VPlatformFile.fromUrl(networkUrl: image).fullNetworkUrl!;
+  String get imageS3 =>
+      VPlatformFile.fromUrl(networkUrl: image).fullNetworkUrl!;
 
   Map<String, dynamic> toMap() {
-    return {
-      'peerId': peerId,
-      'name': name,
-      'image': image,
-    };
+    return {'peerId': peerId, 'name': name, 'image': image};
   }
 
   factory MentionModel.fromMap(Map<String, dynamic> map) {

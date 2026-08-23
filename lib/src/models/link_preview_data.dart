@@ -10,12 +10,7 @@ class LinkPreviewData {
   final String? desc;
   final String? link;
 
-  const LinkPreviewData({
-    this.image,
-    this.title,
-    this.desc,
-    this.link,
-  });
+  const LinkPreviewData({this.image, this.title, this.desc, this.link});
 
   Map<String, dynamic> toMap() {
     return {
@@ -31,10 +26,7 @@ class LinkPreviewData {
     return 'LinkPreviewData{image: $image, title: $title, desc: $desc, link: $link}';
   }
 
-  factory LinkPreviewData.fromMap(
-    Map<String, dynamic> map, {
-    String? baseUrl,
-  }) {
+  factory LinkPreviewData.fromMap(Map<String, dynamic> map, {String? baseUrl}) {
     return LinkPreviewData(
       image: map['image'] == null
           ? null

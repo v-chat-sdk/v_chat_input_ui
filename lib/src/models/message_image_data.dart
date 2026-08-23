@@ -9,7 +9,7 @@ class VMessageImageData {
   int width;
   int height;
 
-//<editor-fold desc="Data Methods">
+  //<editor-fold desc="Data Methods">
 
   VMessageImageData({
     required this.fileSource,
@@ -51,11 +51,7 @@ class VMessageImageData {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      ...fileSource.toMap(),
-      'width': width,
-      'height': height,
-    };
+    return {...fileSource.toMap(), 'width': width, 'height': height};
   }
 
   factory VMessageImageData.fromMap(
@@ -63,9 +59,7 @@ class VMessageImageData {
     String? baseUrl,
   }) {
     return VMessageImageData(
-      fileSource: VPlatformFile.fromMap(
-        map,
-      ),
+      fileSource: VPlatformFile.fromMap(map),
       width: map['width'] as int,
       height: map['height'] as int,
     );
@@ -84,5 +78,5 @@ class VMessageImageData {
     );
   }
 
-//</editor-fold>
+  //</editor-fold>
 }

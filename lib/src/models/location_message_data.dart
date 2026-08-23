@@ -10,10 +10,7 @@ class LocationMessageData {
   final LatLng latLng;
   final LinkPreviewData linkPreviewData;
 
-  LocationMessageData({
-    required this.latLng,
-    required this.linkPreviewData,
-  });
+  LocationMessageData({required this.latLng, required this.linkPreviewData});
 
   @override
   String toString() {
@@ -21,18 +18,18 @@ class LocationMessageData {
   } // from json
 
   LocationMessageData.fromMap(Map<String, dynamic> json)
-      : latLng = LatLng(
-          double.parse(json['lat'].toString()),
-          double.parse(json['long'].toString()),
-        ),
-        linkPreviewData = LinkPreviewData.fromMap(
-          json['linkPreviewData'] as Map<String, dynamic>,
-        );
+    : latLng = LatLng(
+        double.parse(json['lat'].toString()),
+        double.parse(json['long'].toString()),
+      ),
+      linkPreviewData = LinkPreviewData.fromMap(
+        json['linkPreviewData'] as Map<String, dynamic>,
+      );
 
   // to json
   Map<String, dynamic> toMap() => {
-        'lat': latLng.latitude.toString(),
-        'long': latLng.longitude.toString(),
-        'linkPreviewData': linkPreviewData.toMap(),
-      };
+    'lat': latLng.latitude.toString(),
+    'long': latLng.longitude.toString(),
+    'linkPreviewData': linkPreviewData.toMap(),
+  };
 }

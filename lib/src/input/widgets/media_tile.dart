@@ -32,25 +32,15 @@ class ModalTile extends StatelessWidget {
           color: bkColor,
         ),
         padding: const EdgeInsets.all(8),
-        child: Icon(
-          icon,
-          size: 30,
-          color: Colors.white,
-        ),
+        child: Icon(icon, size: 30, color: Colors.white),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(
-          color: Colors.grey,
-          fontSize: 14,
-        ),
+        style: const TextStyle(color: Colors.grey, fontSize: 14),
       ),
       title: Text(
         title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
       ),
     );
   }
