@@ -125,6 +125,12 @@ class VMessageInputWidget extends StatefulWidget {
   /// Optional consumer-owned composer panel controller.
   final VMessageInputController? controller;
 
+  /// Optional complete replacement for the emoji picker panel.
+  ///
+  /// When omitted, the built-in picker follows [VInputTheme.emojiPickerTheme],
+  /// the current locale, available width, and live brightness changes.
+  final VEmojiPickerBuilder? emojiPickerBuilder;
+
   /// Optional replacement for the visual content shown while recording.
   ///
   /// The package still owns recorder lifecycle, duration limits, submission,
@@ -162,6 +168,7 @@ class VMessageInputWidget extends StatefulWidget {
     this.showCameraLauncher = true,
     this.attachmentPanelBuilder,
     this.controller,
+    this.emojiPickerBuilder,
     this.recordingWidgetBuilder,
   });
 
@@ -454,6 +461,8 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
         key: const ValueKey(VComposerPanel.emoji),
         controller: _textEditingController,
         isEmojiShowing: true,
+        language: widget.language,
+        builder: widget.emojiPickerBuilder,
       );
     } else if (_activePanel == VComposerPanel.attachments &&
         _usesInlineAttachments) {

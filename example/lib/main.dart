@@ -79,6 +79,13 @@ class _VChatInputExampleAppState extends State<VChatInputExampleApp> {
                     color: Color(0xFF5EE0B6),
                   ),
                 ),
+                emojiPickerTheme: const VEmojiPickerThemeData.dark(
+                  backgroundColor: Color(0xFF111816),
+                  barColor: Color(0xFF202A27),
+                  accentColor: Color(0xFF5EE0B6),
+                  iconColor: Color(0xFFA9B8B3),
+                  dividerColor: Color(0xFF33433E),
+                ),
               )
             : VInputTheme.light(
                 containerDecoration: BoxDecoration(
@@ -115,6 +122,13 @@ class _VChatInputExampleAppState extends State<VChatInputExampleApp> {
                     Icons.keyboard_alt_outlined,
                     color: Color(0xFF128A66),
                   ),
+                ),
+                emojiPickerTheme: const VEmojiPickerThemeData.light(
+                  backgroundColor: Color(0xFFF8FCFA),
+                  barColor: Colors.white,
+                  accentColor: Color(0xFF128A66),
+                  iconColor: Color(0xFF61706B),
+                  dividerColor: Color(0xFFD8E6E1),
                 ),
               ),
       ],

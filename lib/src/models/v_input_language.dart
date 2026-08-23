@@ -22,6 +22,9 @@ class VInputLanguage {
   final String attachmentPanelLabel;
   final String returnToKeyboardButtonLabel;
   final String closeAttachmentPanelButtonLabel;
+  final String emojiPickerLabel;
+  final String emojiSearchHint;
+  final String noRecentEmojisLabel;
 
   const VInputLanguage({
     this.textFieldHint = "Type your message...",
@@ -45,6 +48,9 @@ class VInputLanguage {
     this.attachmentPanelLabel = "Attachment actions",
     this.returnToKeyboardButtonLabel = "Show keyboard",
     this.closeAttachmentPanelButtonLabel = "Close attachment actions",
+    this.emojiPickerLabel = "Emoji picker",
+    this.emojiSearchHint = "Search emojis",
+    this.noRecentEmojisLabel = "No recent emojis",
   }) : openAttachmentsButtonLabel =
            openAttachmentsButtonLabel ?? attachmentButtonLabel;
 }

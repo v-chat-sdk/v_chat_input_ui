@@ -23,6 +23,9 @@ void main() {
       expect(language.location, 'Location');
       expect(language.sendButtonLabel, 'Send message');
       expect(language.recordButtonLabel, 'Record voice message');
+      expect(language.emojiPickerLabel, 'Emoji picker');
+      expect(language.emojiSearchHint, 'Search emojis');
+      expect(language.noRecentEmojisLabel, 'No recent emojis');
     });
 
     test('accepts consumer-provided labels', () {
@@ -31,12 +34,14 @@ void main() {
         media: 'Photos',
         files: 'Documents',
         sendButtonLabel: 'Send now',
+        emojiSearchHint: 'Find emoji',
       );
 
       expect(language.textFieldHint, 'Write a message');
       expect(language.media, 'Photos');
       expect(language.files, 'Documents');
       expect(language.sendButtonLabel, 'Send now');
+      expect(language.emojiSearchHint, 'Find emoji');
     });
   });
 
@@ -93,6 +98,14 @@ void main() {
     );
     expect(midpoint.textFieldTextStyle.fontSize, 16);
     expect(midpoint.composerActionExtent, 48);
+    expect(
+      midpoint.emojiPickerTheme.backgroundColor,
+      Color.lerp(
+        start.emojiPickerTheme.backgroundColor,
+        end.emojiPickerTheme.backgroundColor,
+        0.5,
+      ),
+    );
   });
 
   testWidgets('submits text and reports typing transitions', (tester) async {

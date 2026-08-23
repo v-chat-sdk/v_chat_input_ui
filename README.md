@@ -6,7 +6,13 @@
 
 A production-ready Flutter chat composer for text, emoji, mentions, media, files, locations, typing state, and voice messages. It is part of the V Chat SDK ecosystem, but works as a standalone package with any messaging backend.
 
-![V Chat Input UI example](doc/screenshots/v_chat_input_ui_example.png)
+## Preview
+
+| Chat composer | Inline attachment tray |
+| --- | --- |
+| ![Dark chat composer with emoji, attachment, and voice actions](images/1.png) | ![Inline attachment tray with Media, Camera, Files, and Poll actions](images/2.png) |
+| Custom recording UI | Emoji picker and light theme |
+| ![Custom voice recording UI with progress, cancel, and send controls](images/3.png) | ![Responsive emoji picker in the light composer theme](images/4.png) |
 
 ## Features
 
@@ -189,6 +195,36 @@ VMessageInputWidget(
 
 The composer's Send button remains the recording-submit control, including
 when a custom recording widget is active.
+
+## Emoji picker
+
+The built-in emoji picker automatically follows the active `ThemeData`
+brightness and locale. It also adapts its height and column count to the
+available space, starts on Smileys instead of an empty Recents page, preserves
+the selected skin tone, and applies the recommended larger emoji size on iOS.
+
+Customize its appearance through the input theme:
+
+```dart
+ThemeData(
+  brightness: Brightness.dark,
+  extensions: [
+    VInputTheme.dark(
+      emojiPickerTheme: const VEmojiPickerThemeData.dark(
+        backgroundColor: Color(0xFF111816),
+        barColor: Color(0xFF202A27),
+        accentColor: Color(0xFF5EE0B6),
+      ),
+    ),
+  ],
+)
+```
+
+`VEmojiPickerThemeData.height` and `columns` are optional fixed overrides; when
+omitted, the package computes responsive values. To replace the whole panel,
+provide `emojiPickerBuilder` on `VMessageInputWidget`. The builder receives the
+same text controller, so inserting an emoji updates the active draft without
+unmounting the composer.
 
 ## Mentions, attachments, and location
 

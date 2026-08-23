@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:v_platform/v_platform.dart';
 
 import 'v_attachment_theme_data.dart';
+import 'v_emoji_picker_theme_data.dart';
 
 class VInputTheme extends ThemeExtension<VInputTheme> {
   final BoxDecoration containerDecoration;
@@ -21,6 +22,7 @@ class VInputTheme extends ThemeExtension<VInputTheme> {
   Widget? sendBtn;
   final TextStyle textFieldTextStyle;
   final VAttachmentThemeData attachmentTheme;
+  final VEmojiPickerThemeData emojiPickerTheme;
 
   /// Shared square extent for the Send and Record controls and the minimum
   /// height of the one-line input container.
@@ -37,6 +39,7 @@ class VInputTheme extends ThemeExtension<VInputTheme> {
     required this.fileIcon,
     required this.cameraIcon,
     required this.attachmentTheme,
+    required this.emojiPickerTheme,
     required this.composerActionExtent,
   }) : assert(composerActionExtent > 0);
 
@@ -55,8 +58,11 @@ class VInputTheme extends ThemeExtension<VInputTheme> {
     this.textFieldTextStyle = const TextStyle(height: 1.3),
     this.composerActionExtent = 48,
     VAttachmentThemeData? attachmentTheme,
+    VEmojiPickerThemeData? emojiPickerTheme,
   }) : assert(composerActionExtent > 0),
-       attachmentTheme = attachmentTheme ?? const VAttachmentThemeData.light() {
+       attachmentTheme = attachmentTheme ?? const VAttachmentThemeData.light(),
+       emojiPickerTheme =
+           emojiPickerTheme ?? const VEmojiPickerThemeData.light() {
     emojiIcon ??= const Icon(
       Icons.emoji_emotions_outlined,
       size: 26,
@@ -110,8 +116,11 @@ class VInputTheme extends ThemeExtension<VInputTheme> {
     this.sendBtn,
     this.composerActionExtent = 48,
     VAttachmentThemeData? attachmentTheme,
+    VEmojiPickerThemeData? emojiPickerTheme,
   }) : assert(composerActionExtent > 0),
-       attachmentTheme = attachmentTheme ?? const VAttachmentThemeData.dark() {
+       attachmentTheme = attachmentTheme ?? const VAttachmentThemeData.dark(),
+       emojiPickerTheme =
+           emojiPickerTheme ?? const VEmojiPickerThemeData.dark() {
     emojiIcon ??= const Icon(
       CupertinoIcons.smiley,
       size: 26,
@@ -179,6 +188,7 @@ class VInputTheme extends ThemeExtension<VInputTheme> {
           TextStyle.lerp(textFieldTextStyle, other.textFieldTextStyle, t) ??
           textFieldTextStyle,
       attachmentTheme: attachmentTheme.lerp(other.attachmentTheme, t),
+      emojiPickerTheme: emojiPickerTheme.lerp(other.emojiPickerTheme, t),
       composerActionExtent:
           composerActionExtent +
           (other.composerActionExtent - composerActionExtent) * t,
@@ -197,6 +207,7 @@ class VInputTheme extends ThemeExtension<VInputTheme> {
     Widget? trashIcon,
     TextStyle? textFieldTextStyle,
     VAttachmentThemeData? attachmentTheme,
+    VEmojiPickerThemeData? emojiPickerTheme,
     double? composerActionExtent,
   }) {
     return VInputTheme._(
@@ -210,6 +221,7 @@ class VInputTheme extends ThemeExtension<VInputTheme> {
       sendBtn: sendBtn ?? this.sendBtn,
       textFieldTextStyle: textFieldTextStyle ?? this.textFieldTextStyle,
       attachmentTheme: attachmentTheme ?? this.attachmentTheme,
+      emojiPickerTheme: emojiPickerTheme ?? this.emojiPickerTheme,
       composerActionExtent: composerActionExtent ?? this.composerActionExtent,
     );
   }

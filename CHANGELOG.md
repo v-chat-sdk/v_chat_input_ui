@@ -1,3 +1,10 @@
+## 3.3.0
+
+- Make the built-in emoji picker react to live light/dark theme and locale changes.
+- Add responsive picker sizing, adaptive emoji columns, an iOS emoji-size adjustment, remembered skin tones, localized search and empty states, and a useful initial category.
+- Add `VEmojiPickerThemeData` for picker styling and `emojiPickerBuilder` for complete panel replacement.
+- Add a public screenshot gallery covering the composer, inline attachments, custom recording UI, and emoji picker.
+
 ## 3.2.0
 
 - Add typed Media, Camera, Files, Location, and consumer-owned attachment actions.
