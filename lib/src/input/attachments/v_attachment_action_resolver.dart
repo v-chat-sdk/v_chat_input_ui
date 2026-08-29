@@ -12,14 +12,12 @@ List<VAttachmentAction> resolveAttachmentActions({
   required List<VAttachmentAction>? configuredActions,
   required VAttachmentPresentation presentation,
   required VInputLanguage language,
-  required bool enableCamera,
   required bool enableLocation,
 }) {
   final source =
       configuredActions ??
       _defaultActions(
         presentation: presentation,
-        enableCamera: enableCamera,
         enableLocation: enableLocation,
       );
   final seenIds = <String>{};
@@ -40,7 +38,6 @@ List<VAttachmentAction> resolveAttachmentActions({
         'Attachment action ids must be unique. Duplicate id: ${action.id}',
       );
     }
-    if (action is VCameraAttachmentAction && !enableCamera) continue;
     if (action is VLocationAttachmentAction && !enableLocation) continue;
     resolved.add(_resolveBuiltInAction(action, language));
   }
@@ -50,13 +47,11 @@ List<VAttachmentAction> resolveAttachmentActions({
 
 List<VAttachmentAction> _defaultActions({
   required VAttachmentPresentation presentation,
-  required bool enableCamera,
   required bool enableLocation,
 }) {
   return [
     const VAttachmentAction.media(),
-    if (presentation != VAttachmentPresentation.adaptiveActionSheet &&
-        enableCamera)
+    if (presentation != VAttachmentPresentation.adaptiveActionSheet)
       const VAttachmentAction.camera(),
     const VAttachmentAction.files(),
     if (enableLocation) const VAttachmentAction.location(),

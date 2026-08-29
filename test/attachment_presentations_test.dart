@@ -211,13 +211,17 @@ void main() {
         expect(find.text('Document'), findsOneWidget);
         expect(find.text('Gallery'), findsOneWidget);
         expect(find.text('Location'), findsNothing);
-        expect(find.text('Camera'), findsNothing);
+        expect(find.text('Camera'), findsOneWidget);
         expect(
           tester.getCenter(find.text('Poll')).dx,
           lessThan(tester.getCenter(find.text('Document')).dx),
         );
         expect(
           tester.getCenter(find.text('Document')).dx,
+          lessThan(tester.getCenter(find.text('Camera')).dx),
+        );
+        expect(
+          tester.getCenter(find.text('Camera')).dx,
           lessThan(tester.getCenter(find.text('Gallery')).dx),
         );
       },

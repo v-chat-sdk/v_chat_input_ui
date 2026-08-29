@@ -1,3 +1,10 @@
+## 3.4.0
+
+- Add `includeSafeAreaForVAttachmentPanel` to `VMessageInputWidget` to control `SafeArea` wrapping for attachment panels (defaults to `true`).
+- Center-align the composer row (`CrossAxisAlignment.center`) for more consistent vertical alignment of the input field and action buttons.
+- Decouple the camera attachment from `enableCamera` for panel presentations so the panel camera action is available whenever configured; `enableCamera` now only gates the standalone camera launcher and recording paths.
+- Keep location filtering for explicit attachment actions so `VLocationAttachmentAction` remains hidden when `googleMapsApiKey` is absent, and restore consistent filtering for the default panel.
+
 ## 3.3.0
 
 - Make the built-in emoji picker react to live light/dark theme and locale changes.

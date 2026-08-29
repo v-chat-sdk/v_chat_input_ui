@@ -303,6 +303,7 @@ class _ChatComposerDemoState extends State<ChatComposerDemo> {
                   attachmentPresentation: _attachmentPresentation,
                   attachmentLauncherPlacement: _launcherPlacement,
                   attachmentPanelLayout: _panelLayout,
+                  enableCamera: true,
                   attachmentActions: [
                     const VAttachmentAction.media(),
                     const VAttachmentAction.camera(),

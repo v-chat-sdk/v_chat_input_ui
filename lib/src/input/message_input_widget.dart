@@ -99,6 +99,9 @@ class VMessageInputWidget extends StatefulWidget {
   /// Whether camera actions are available on supported platforms.
   final bool enableCamera;
 
+  /// Whether includeSafeAreaForVAttachmentPanel.
+  final bool includeSafeAreaForVAttachmentPanel;
+
   /// Whether voice recording is available on supported platforms.
   final bool enableVoiceRecording;
 
@@ -159,6 +162,7 @@ class VMessageInputWidget extends StatefulWidget {
     this.googleMapsLangKey = 'en',
     this.enableEmojiPicker = true,
     this.enableAttachments = true,
+    this.includeSafeAreaForVAttachmentPanel = true,
     this.enableCamera = true,
     this.enableVoiceRecording = true,
     this.attachmentPresentation = VAttachmentPresentation.adaptiveActionSheet,
@@ -317,7 +321,7 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
   Widget _buildComposerRow(BuildContext context) {
     final placement = widget.attachmentLauncherPlacement;
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (_canShowAttachmentLauncher &&
             placement == VAttachmentLauncherPlacement.leadingOutside) ...[
@@ -469,6 +473,7 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
       child = VAttachmentPanel(
         key: const ValueKey(VComposerPanel.attachments),
         actions: _visibleAttachmentActions,
+        includeSafeArea: widget.includeSafeAreaForVAttachmentPanel,
         layout:
             widget.attachmentPanelLayout ??
             VAttachmentPanelLayout.horizontalList,
@@ -618,6 +623,7 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
         sheetContext = context;
         return VAttachmentPanel(
           actions: actions,
+          includeSafeArea: widget.includeSafeAreaForVAttachmentPanel,
           layout: widget.attachmentPanelLayout ?? VAttachmentPanelLayout.grid,
           controller: panelController,
           semanticLabel: widget.language.attachmentPanelLabel,
@@ -639,7 +645,6 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
       configuredActions: widget.attachmentActions,
       presentation: widget.attachmentPresentation,
       language: widget.language,
-      enableCamera: widget.enableCamera,
       enableLocation: widget.googleMapsApiKey != null,
     );
   }
