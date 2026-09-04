@@ -4,6 +4,7 @@
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:v_platform/v_platform.dart';
 import 'package:wechat_camera_picker/wechat_camera_picker.dart';
@@ -123,6 +124,25 @@ abstract class VAppPick {
     );
   }
 
+  /// The capture UI lays out and reports orientation for portrait devices;
+  /// locking it avoids the broken preview and controls when the chat is
+  /// opened in landscape.
+  @visibleForTesting
+  static CameraPickerConfig buildCameraPickerConfig({
+    XFileCapturedCallback? onXFileCaptured,
+    int videoSeconds = 45,
+  }) {
+    return CameraPickerConfig(
+      enableRecording: true,
+      enableTapRecording: true,
+      maximumRecordingDuration: Duration(seconds: videoSeconds),
+      textDelegate: const EnglishCameraPickerTextDelegate(),
+      onXFileCaptured: onXFileCaptured,
+      shouldAutoPreviewVideo: true,
+      lockCaptureOrientation: DeviceOrientation.portraitUp,
+    );
+  }
+
   static Future<VPlatformFile?> pickFromWeAssetCamera({
     XFileCapturedCallback? onXFileCaptured,
     required BuildContext context,
@@ -130,13 +150,9 @@ abstract class VAppPick {
   }) async {
     final AssetEntity? entity = await CameraPicker.pickFromCamera(
       context,
-      pickerConfig: CameraPickerConfig(
-        enableRecording: true,
-        enableTapRecording: true,
-        maximumRecordingDuration: Duration(seconds: videoSeconds),
-        textDelegate: const EnglishCameraPickerTextDelegate(),
+      pickerConfig: buildCameraPickerConfig(
         onXFileCaptured: onXFileCaptured,
-        shouldAutoPreviewVideo: true,
+        videoSeconds: videoSeconds,
       ),
     );
     if (entity == null) {

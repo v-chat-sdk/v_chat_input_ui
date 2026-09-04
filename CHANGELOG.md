@@ -1,3 +1,8 @@
+## 3.4.1
+
+- Lock the built-in camera picker capture orientation to portrait so the camera UI and preview stay correct when the chat is opened while the device is in landscape.
+- Expose the camera picker config construction for testing via `VAppPick.buildCameraPickerConfig`.
+
 ## 3.4.0
 
 - Add `includeSafeAreaForVAttachmentPanel` to `VMessageInputWidget` to control `SafeArea` wrapping for attachment panels (defaults to `true`).
