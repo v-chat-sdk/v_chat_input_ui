@@ -114,6 +114,10 @@ const VInputLanguage(
 );
 ```
 
+For a long hint, set `singleLineHint: true` on `VMessageInputWidget`. The hint
+then stays on one line and truncates with an ellipsis, while typed messages
+still grow to five lines. The default keeps the existing wrapping behavior.
+
 ## Attachment presentations
 
 `adaptiveActionSheet` remains the backward-compatible default. Choose a modal panel or a tray mounted directly beneath the composer when your product needs a richer action menu:

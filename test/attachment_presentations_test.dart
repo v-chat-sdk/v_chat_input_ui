@@ -1025,6 +1025,7 @@ class _FakeFilePickerPlatform extends FilePickerPlatform {
     Function(FilePickerStatus)? onFileLoading,
     int compressionQuality = 0,
     AndroidOptions androidOptions = const AndroidOptions(),
+    Object? darwinOptions,
     WindowsOptions windowsOptions = const WindowsOptions(),
     LinuxOptions linuxOptions = const LinuxOptions(),
     WebOptions webOptions = const WebOptions(),
@@ -1048,6 +1049,9 @@ base class _MemoryPlatformFile extends PlatformFile {
 
   @override
   Future<int> length() async => data.length;
+
+  // ignore: annotate_overrides
+  int? lengthSync() => data.length;
 
   @override
   Future<Uint8List> readAsBytes() async => data;

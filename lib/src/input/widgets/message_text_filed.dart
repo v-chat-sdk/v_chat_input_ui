@@ -16,6 +16,7 @@ class MessageTextFiled extends StatefulWidget {
   final bool isTyping;
   final bool autofocus;
   final String hint;
+  final bool singleLineHint;
   final VoidCallback onShowEmoji;
   final VoidCallback onCameraPress;
   final VoidCallback onAttachFilePress;
@@ -40,6 +41,7 @@ class MessageTextFiled extends StatefulWidget {
     required this.isTyping,
     required this.autofocus,
     required this.hint,
+    required this.singleLineHint,
     required this.onSubmit,
     required this.showEmojiButton,
     required this.showCameraButton,
@@ -74,6 +76,38 @@ class _MessageTextFiledState extends State<MessageTextFiled> {
 
   @override
   Widget build(BuildContext context) {
+    final textField = CupertinoTextField(
+      decoration: const BoxDecoration(color: Colors.transparent),
+      placeholder: widget.singleLineHint ? null : widget.hint,
+      textCapitalization: TextCapitalization.sentences,
+      controller: widget.textEditingController,
+      focusNode: widget.focusNode,
+      autofocus: widget.autofocus,
+      onTap: widget.onInputTap,
+      maxLines: 5,
+      onChanged: (value) {
+        setState(() {
+          txt = value;
+        });
+      },
+      style: context.vInputTheme.textFieldTextStyle,
+      minLines: 1,
+      textAlignVertical: TextAlignVertical.top,
+      onSubmitted: VPlatforms.isMobile
+          ? null
+          : (value) {
+              if (value.trim().isNotEmpty) {
+                widget.onSubmit(value);
+              }
+              widget.focusNode.requestFocus();
+            },
+      textInputAction: VPlatforms.isMobile
+          ? TextInputAction.newline
+          : TextInputAction.send,
+      keyboardType: VPlatforms.isMobile
+          ? TextInputType.multiline
+          : TextInputType.text,
+    );
     return Row(
       crossAxisAlignment: isMultiLine
           ? CrossAxisAlignment.end
@@ -94,38 +128,57 @@ class _MessageTextFiledState extends State<MessageTextFiled> {
         Expanded(
           child: AutoDirection(
             text: txt,
-            child: CupertinoTextField(
-              decoration: const BoxDecoration(color: Colors.transparent),
-              placeholder: widget.hint,
-              textCapitalization: TextCapitalization.sentences,
-              controller: widget.textEditingController,
-              focusNode: widget.focusNode,
-              autofocus: widget.autofocus,
-              onTap: widget.onInputTap,
-              maxLines: 5,
-              onChanged: (value) {
-                setState(() {
-                  txt = value;
-                });
-              },
-              style: context.vInputTheme.textFieldTextStyle,
-              minLines: 1,
-              textAlignVertical: TextAlignVertical.top,
-              onSubmitted: VPlatforms.isMobile
-                  ? null
-                  : (value) {
-                      if (value.trim().isNotEmpty) {
-                        widget.onSubmit(value);
-                      }
-                      widget.focusNode.requestFocus();
-                    },
-              textInputAction: VPlatforms.isMobile
-                  ? TextInputAction.newline
-                  : TextInputAction.send,
-              keyboardType: VPlatforms.isMobile
-                  ? TextInputType.multiline
-                  : TextInputType.text,
-            ),
+            child: !widget.singleLineHint
+                ? textField
+                : Stack(
+                    children: [
+                      Semantics(hint: widget.hint, child: textField),
+                      Positioned.fill(
+                        child: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: widget.textEditingController,
+                          builder: (context, value, _) {
+                            if (value.text.isNotEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return IgnorePointer(
+                              child: ExcludeSemantics(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(7),
+                                  child: Align(
+                                    alignment: AlignmentDirectional.centerStart,
+                                    child: Text(
+                                      widget.hint,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: CupertinoTheme.of(context)
+                                          .textTheme
+                                          .textStyle
+                                          .merge(
+                                            context
+                                                .vInputTheme
+                                                .textFieldTextStyle,
+                                          )
+                                          .merge(
+                                            TextStyle(
+                                              fontWeight: FontWeight.w400,
+                                              color:
+                                                  CupertinoDynamicColor.resolve(
+                                                    CupertinoColors
+                                                        .placeholderText,
+                                                    context,
+                                                  ),
+                                            ),
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
         const SizedBox(width: 3),

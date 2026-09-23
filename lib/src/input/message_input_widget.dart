@@ -84,6 +84,10 @@ class VMessageInputWidget extends StatefulWidget {
   /// Composer labels and accessibility strings.
   final VInputLanguage language;
 
+  /// Keeps the empty text hint on one line with an ellipsis when it is long.
+  /// Typed messages can still grow to five lines. Defaults to false.
+  final bool singleLineHint;
+
   /// Google Maps localization key.
   final String googleMapsLangKey;
 
@@ -159,6 +163,7 @@ class VMessageInputWidget extends StatefulWidget {
     this.onMentionSearch,
     this.googleMapsApiKey,
     this.language = const VInputLanguage(),
+    this.singleLineHint = false,
     this.googleMapsLangKey = 'en',
     this.enableEmojiPicker = true,
     this.enableAttachments = true,
@@ -203,7 +208,9 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
 
   bool get _isSendButtonEnabled => _hasDraftText || _isRecording;
 
-  bool get _canRecord => widget.enableVoiceRecording && !VPlatforms.isDeskTop;
+  bool get _canRecord =>
+      widget.enableVoiceRecording &&
+      !(VPlatforms.isWindows || VPlatforms.isLinux || VPlatforms.isMacOs);
 
   bool get _canShowAttachmentLauncher =>
       widget.enableAttachments && !_isRecording;
@@ -376,6 +383,7 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
               autofocus: widget.autofocus,
               focusNode: _focusNode,
               hint: widget.language.textFieldHint,
+              singleLineHint: widget.singleLineHint,
               isTyping: _hasDraftText,
               onSubmit: (_) => _submitCurrentValue(),
               textEditingController: _textEditingController,
