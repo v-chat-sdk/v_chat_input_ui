@@ -1,3 +1,8 @@
+## 3.4.2
+
+- Add `singleLineHint` to keep a long composer placeholder on one line without limiting multiline messages.
+- Keep the package compatible with newer allowed `file_picker` and `v_platform` releases.
+
 ## 3.4.1
 
 - Lock the built-in camera picker capture orientation to portrait so the camera UI and preview stay correct when the chat is opened while the device is in landscape.

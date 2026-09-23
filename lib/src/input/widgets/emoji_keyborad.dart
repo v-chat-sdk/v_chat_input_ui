@@ -29,7 +29,11 @@ class EmojiKeyboard extends StatelessWidget {
     }
     final pickerTheme = context.vInputTheme.emojiPickerTheme;
     final mediaHeight = MediaQuery.sizeOf(context).height;
-    final maximumHeight = VPlatforms.isWeb || VPlatforms.isDeskTop
+    final maximumHeight =
+        VPlatforms.isWeb ||
+            VPlatforms.isWindows ||
+            VPlatforms.isLinux ||
+            VPlatforms.isMacOs
         ? 360.0
         : 320.0;
     final pickerHeight =

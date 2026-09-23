@@ -87,7 +87,10 @@ class VInputTheme extends ThemeExtension<VInputTheme> {
       padding: const EdgeInsets.all(7),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: VPlatforms.isDeskTop ? Colors.grey : Colors.green,
+        color:
+            (VPlatforms.isWindows || VPlatforms.isLinux || VPlatforms.isMacOs)
+            ? Colors.grey
+            : Colors.green,
       ),
       child: const Icon(Icons.mic, color: Colors.white),
     );
@@ -145,7 +148,10 @@ class VInputTheme extends ThemeExtension<VInputTheme> {
       padding: const EdgeInsets.all(7),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: VPlatforms.isDeskTop ? Colors.grey : Colors.green,
+        color:
+            (VPlatforms.isWindows || VPlatforms.isLinux || VPlatforms.isMacOs)
+            ? Colors.grey
+            : Colors.green,
       ),
       child: const Icon(Icons.mic, color: Colors.white),
     );

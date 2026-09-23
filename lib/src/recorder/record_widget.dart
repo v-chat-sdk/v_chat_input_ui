@@ -106,7 +106,9 @@ class RecordWidgetState extends State<RecordWidget> {
   }
 
   Future<bool> _start() async {
-    if (VPlatforms.isDeskTop) return false;
+    if (VPlatforms.isWindows || VPlatforms.isLinux || VPlatforms.isMacOs) {
+      return false;
+    }
     if (VPlatforms.isWeb) {
       await _recorder!.start();
     } else {

@@ -8,6 +8,7 @@ import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:v_chat_input_ui/v_chat_input_ui.dart';
 import 'package:v_platform/v_platform.dart';
@@ -131,6 +132,63 @@ void main() {
     expect(find.text('Hello package'), findsNothing);
   });
 
+  testWidgets('can keep a long hint on one line without limiting input', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 800);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    const hint = 'Write a longer message that does not fit on one line';
+    await tester.pumpWidget(
+      const _ComposerHost(
+        language: VInputLanguage(textFieldHint: hint),
+        singleLineHint: true,
+      ),
+    );
+
+    final field = tester.widget<CupertinoTextField>(
+      find.byType(CupertinoTextField),
+    );
+    expect(field.maxLines, 5);
+    expect(field.placeholder, isNull);
+    final visibleHint = tester.widget<Text>(find.text(hint));
+    expect(visibleHint.maxLines, 1);
+    expect(visibleHint.overflow, TextOverflow.ellipsis);
+    expect(
+      tester.renderObject<RenderParagraph>(find.text(hint)).didExceedMaxLines,
+      isTrue,
+    );
+
+    await tester.tapAt(tester.getCenter(find.text(hint)));
+    await tester.pump();
+    expect(field.focusNode!.hasFocus, isTrue);
+
+    await tester.enterText(find.byType(CupertinoTextField), 'one\ntwo');
+    await tester.pump();
+    expect(find.text(hint), findsNothing);
+    expect(
+      tester
+          .widget<CupertinoTextField>(find.byType(CupertinoTextField))
+          .maxLines,
+      5,
+    );
+
+    await tester.enterText(find.byType(CupertinoTextField), '');
+    await tester.pump();
+    expect(find.text(hint), findsOneWidget);
+  });
+
+  testWidgets('keeps the built-in placeholder by default', (tester) async {
+    await tester.pumpWidget(const _ComposerHost());
+    expect(
+      tester
+          .widget<CupertinoTextField>(find.byType(CupertinoTextField))
+          .placeholder,
+      'Type your message...',
+    );
+  });
+
   testWidgets('can hide optional composer actions', (tester) async {
     await tester.pumpWidget(
       const _ComposerHost(
@@ -187,6 +245,8 @@ class _ComposerHost extends StatelessWidget {
     this.enableAttachments = true,
     this.enableCamera = true,
     this.enableVoiceRecording = true,
+    this.language = const VInputLanguage(),
+    this.singleLineHint = false,
   });
 
   final ValueChanged<String>? onSubmitText;
@@ -198,6 +258,8 @@ class _ComposerHost extends StatelessWidget {
   final bool enableAttachments;
   final bool enableCamera;
   final bool enableVoiceRecording;
+  final VInputLanguage language;
+  final bool singleLineHint;
 
   @override
   Widget build(BuildContext context) {
@@ -210,6 +272,8 @@ class _ComposerHost extends StatelessWidget {
           enableAttachments: enableAttachments,
           enableCamera: enableCamera,
           enableVoiceRecording: enableVoiceRecording,
+          language: language,
+          singleLineHint: singleLineHint,
           onSubmitText: onSubmitText ?? (_) {},
           onSubmitMedia: (_) {},
           onSubmitFiles: onSubmitFiles ?? (_) {},
@@ -236,6 +300,7 @@ class _FakeFilePickerPlatform extends FilePickerPlatform {
     Function(FilePickerStatus)? onFileLoading,
     int compressionQuality = 0,
     AndroidOptions androidOptions = const AndroidOptions(),
+    Object? darwinOptions,
     WindowsOptions windowsOptions = const WindowsOptions(),
     LinuxOptions linuxOptions = const LinuxOptions(),
     WebOptions webOptions = const WebOptions(),
@@ -259,6 +324,9 @@ base class _MemoryPlatformFile extends PlatformFile {
 
   @override
   Future<int> length() async => data.length;
+
+  // ignore: annotate_overrides
+  int? lengthSync() => data.length;
 
   @override
   Future<Uint8List> readAsBytes() async => data;
