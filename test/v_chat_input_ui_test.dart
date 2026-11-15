@@ -13,7 +13,28 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:v_chat_input_ui/v_chat_input_ui.dart';
 import 'package:v_platform/v_platform.dart';
 
+import 'support/unknown_length_platform_file.dart';
+
 void main() {
+  test(
+    'enforces file size limits when the picker cannot report length',
+    () async {
+      final largeFile = UnknownLengthPlatformFile('large.txt', Uint8List(10));
+      final originalPlatform = FilePickerPlatform.instance;
+      FilePickerPlatform.instance = _FakeFilePickerPlatform([
+        UnknownLengthPlatformFile('small.txt', Uint8List(2)),
+        largeFile,
+      ]);
+      addTearDown(() => FilePickerPlatform.instance = originalPlatform);
+      final result = await VAppPick.getFiles(maxFileSize: 4);
+      expect(largeFile.byteReads, 0);
+      expect(largeFile.streamedBytes, 5);
+      expect(result!.oversizedCount, 1);
+      expect(result.files.single.name, 'small.txt');
+      expect(VAppPick.isPicking, isFalse);
+    },
+  );
+
   group('VInputLanguage', () {
     test('provides usable English and accessibility defaults', () {
       const language = VInputLanguage();

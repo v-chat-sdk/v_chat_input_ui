@@ -5,8 +5,10 @@
 import 'package:flutter/material.dart';
 
 /// Replaces the built-in emoji picker while preserving composer behavior.
-typedef VEmojiPickerBuilder =
-    Widget Function(BuildContext context, TextEditingController controller);
+typedef VEmojiPickerBuilder = Widget Function(
+  BuildContext context,
+  TextEditingController controller,
+);
 
 /// Visual and responsive configuration for the built-in emoji picker.
 @immutable

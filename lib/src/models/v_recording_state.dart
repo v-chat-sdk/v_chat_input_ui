@@ -39,9 +39,8 @@ class VRecordingState {
 /// handling, and cleanup. Call [onCancel] from the custom UI to safely cancel
 /// the current recording. Submission remains available through the composer's
 /// Send button.
-typedef VRecordingWidgetBuilder =
-    Widget Function(
-      BuildContext context,
-      VRecordingState state,
-      VoidCallback onCancel,
-    );
+typedef VRecordingWidgetBuilder = Widget Function(
+  BuildContext context,
+  VRecordingState state,
+  VoidCallback onCancel,
+);

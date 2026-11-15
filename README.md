@@ -33,7 +33,7 @@ A production-ready Flutter chat composer for text, emoji, mentions, media, files
 flutter pub add v_chat_input_ui
 ```
 
-The package currently requires Flutter 3.44 or newer and Dart 3.12 or newer.
+The package currently requires Flutter 3.47 or newer and Dart 3.13 or newer.
 
 ## Quick start
 
@@ -272,3 +272,58 @@ Open bugs and feature requests in the [package issue tracker](https://github.com
 ## License
 
 This package is available under the [MIT License](LICENSE).
+
+## Dependency compatibility
+
+Version 4.1 requires `v_chat_mention_controller: ^2.0.1`, which cancels pending searches and clears its callback on disposal. Applications using version 4 can remove the local override used solely for that mention-controller lifecycle patch.
+
+`file_picker` 13.3.2 still requires `cross_file` 0.3.x, so this package uses `^0.3.5+5`. The Cupertino font constraint accepts 1.x and 2.x so apps can also use Chewie, which still requires 1.x. The Android example uses API 37 with AGP 9.1.1 / Gradle 9.3.1 and retains Flutter's legacy Kotlin compatibility mode for plugins that need it. Apple examples target iOS 15 and macOS 12. Native permissions and platform services still require device validation.
+
+## Application-owned drafts and accepted sends
+
+`VMessageInputWidget` can borrow a `TextEditingController` through
+`textController`. The package keeps its internal mention-aware editor and
+synchronizes the complete `TextEditingValue` in both directions, including
+selection and IME composing ranges. The caller owns and disposes the borrowed
+controller. Replacing it detaches the previous controller; removing the
+composer does not dispose either controller. Values are preserved exactly, so
+set the initial caret explicitly when restoring a draft that should be focused.
+
+The optional `onSubmitTextAccepted` callback receives visible, plain text and
+returns whether the application's send handler accepted it. Returning `false`
+preserves the complete draft; returning `true` clears it. This is application
+acceptance, not confirmation of server delivery. When the callback is omitted,
+`onSubmitText` continues to receive mention markup and the composer retains its
+existing clear-after-callback behavior. Only one of these submission callbacks
+runs for a send.
+
+```dart
+textController: draftController,
+onSubmitTextAccepted: (plainText) => sendHandler(plainText),
+mentionListMaxHeight: availableSuggestionHeight,
+```
+
+`mentionListMaxHeight` defaults to 200 and accepts any finite, non-negative
+height. A value of zero hides the suggestions while preserving the draft and
+its query. Restored mention queries are searched when the search callback is
+attached, when the draft controller is replaced, and when messaging becomes
+available again. Results from superseded callbacks and drafts are ignored.
+Mention emphasis follows the consumer's `ColorScheme.primary` and composer
+text style.
+
+Supplying `stopChatWidget` closes composer panels, stops recording activity,
+and suppresses mention searches. An externally owned unsent draft is retained
+and remains available when messaging resumes. The default internally owned
+draft keeps its previous reset behavior. Recording shutdown waits for an
+in-flight native start before stopping and disposing the recorder; sending
+also waits for startup and shares the stop operation with cleanup. A cancelled
+or replaced session's late completion is ignored, leaving a newer recording
+unchanged.
+
+## Picker access outside the composer
+
+`VAppPick` is exported from `package:v_chat_input_ui/v_chat_input_ui.dart`.
+Consumers can reuse its existing image, media, file, crop, and camera helpers
+for profile photos, group photos, and publishing. Helpers return the existing
+`VPlatformFile` contract. Native permissions and platform setup remain the
+consuming application's responsibility.

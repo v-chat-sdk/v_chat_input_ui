@@ -102,7 +102,7 @@ abstract class VAppPick {
     final acceptedFiles = <PlatformFile>[];
     var oversizedCount = 0;
     for (final file in pickedFiles) {
-      if (maxFileSize != null && await file.length() > maxFileSize) {
+      if (maxFileSize != null && await _exceedsFileSize(file, maxFileSize)) {
         oversizedCount++;
       } else {
         acceptedFiles.add(file);
@@ -112,6 +112,17 @@ abstract class VAppPick {
       files: await Future.wait(acceptedFiles.map(_toVPlatformFile)),
       oversizedCount: oversizedCount,
     );
+  }
+
+  static Future<bool> _exceedsFileSize(PlatformFile file, int limit) async {
+    final length = await file.length();
+    if (length != null) return length > limit;
+    var streamedLength = 0;
+    await for (final chunk in file.readAsByteStream()) {
+      streamedLength += chunk.length;
+      if (streamedLength > limit) return true;
+    }
+    return false;
   }
 
   static Future<VPlatformFile> _toVPlatformFile(PlatformFile file) async {

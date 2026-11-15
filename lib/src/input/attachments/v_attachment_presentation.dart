@@ -32,9 +32,8 @@ abstract interface class VAttachmentPresentationController {
   void showKeyboard();
 }
 
-typedef VAttachmentPanelBuilder =
-    Widget Function(
-      BuildContext context,
-      List<VAttachmentAction> actions,
-      VAttachmentPresentationController controller,
-    );
+typedef VAttachmentPanelBuilder = Widget Function(
+  BuildContext context,
+  List<VAttachmentAction> actions,
+  VAttachmentPresentationController controller,
+);

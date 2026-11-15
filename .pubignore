@@ -30,3 +30,15 @@ AGENTS.md
 **/ephemeral/
 **/Flutter/Generated.xcconfig
 **/Flutter/flutter_export_environment.sh
+
+# Local QA artifacts and native dependency caches
+shots/
+**/Pods/
+**/.symlinks/
+**/xcshareddata/swiftpm/
+
+# Release archive exclusions
+
+**/AGENTS.md
+**/CLAUDE.md
+shots/

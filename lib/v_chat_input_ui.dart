@@ -10,3 +10,5 @@ export './src/input/attachments/v_attachment_presentation.dart';
 export './src/input/attachments/v_message_input_controller.dart';
 export './src/input/message_input_widget.dart';
 export './src/models/models.dart';
+
+export './src/v_widgets/app_pick.dart' show VAppPick;

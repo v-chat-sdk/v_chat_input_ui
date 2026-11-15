@@ -1,3 +1,23 @@
+## 4.1.0 - 2026-11-04
+
+- Add borrowed draft-controller synchronization, accepted-send handling, configurable mention height, and public picker access.
+- Preserve external drafts and stop composer activity when messaging is unavailable.
+- Restore mention queries across drafts and callback changes, using consumer theme emphasis.
+- Require mention controller ^2.0.1 for safe disposal and multiline restored mentions.
+- Serialize recording startup, submission, and shutdown to prevent late voice sends or recording after removal.
+
+## 4.0.0 - 2026-11-04
+
+- Require v_chat_mention_controller ^2.0.0, including debounce cancellation and callback cleanup on disposal.
+
+- Require Flutter >=3.47.0 and Dart >=3.13.0 <4.0.0 for this SDK update.
+- Refresh package and example dependency constraints to current stable releases as of 2026-11-04, subject to documented upstream compatibility constraints.
+- Validate with Flutter 3.47.8 / Dart 3.13.7 using fix, format, static analysis, and package/example tests.
+- Upgrade file_picker to 13.3.2, image_cropper to 13.0.0, and adaptive_dialog to 3.0.1.
+- Enforce attachment limits for unknown-length files by streaming only until the limit is crossed.
+- Keep cross_file at ^0.3.5+5 for file_picker compatibility; accept Cupertino icon font 1.x and 2.x for Chewie consumers.
+- Update the Android example to AGP 9.1.1 / Gradle 9.3.1 for API 37, and add iOS permission descriptions.
+
 ## 3.4.2
 
 - Add `singleLineHint` to keep a long composer placeholder on one line without limiting multiline messages.

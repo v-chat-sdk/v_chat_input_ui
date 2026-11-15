@@ -6,8 +6,9 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
-typedef VAttachmentActionCallback =
-    FutureOr<void> Function(BuildContext context);
+typedef VAttachmentActionCallback = FutureOr<void> Function(
+  BuildContext context,
+);
 
 /// Describes one action that can be rendered by an attachment presentation.
 sealed class VAttachmentAction {

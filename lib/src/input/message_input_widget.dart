@@ -19,6 +19,7 @@ import '../v_widgets/app_pick.dart';
 import '../v_widgets/extension.dart';
 import '../v_widgets/v_app_alert.dart';
 import '../v_widgets/v_circle_avatar.dart';
+import 'attachments/attachment_panel_controller.dart';
 import 'attachments/v_attachment_action.dart';
 import 'attachments/v_attachment_action_resolver.dart';
 import 'attachments/v_attachment_panel.dart';
@@ -33,6 +34,16 @@ import 'widgets/message_text_filed.dart';
 class VMessageInputWidget extends StatefulWidget {
   /// Callback when the user sends text.
   final ValueChanged<String> onSubmitText;
+
+  /// Optional borrowed controller for restoring and editing drafts.
+  /// Its complete value, including selection and composing, is synchronized.
+  /// The caller retains ownership and must dispose this controller itself.
+  final TextEditingController? textController;
+
+  /// Optional application acceptance check receiving visible, plain text.
+  /// Returning false preserves the draft; true clears it. When omitted,
+  /// [onSubmitText] receives mention markup and the existing clear behavior applies.
+  final bool Function(String)? onSubmitTextAccepted;
 
   /// Callback when the user sends images, videos, or a mixed selection.
   final ValueChanged<List<VPlatformFile>> onSubmitMedia;
@@ -59,6 +70,9 @@ class VMessageInputWidget extends StatefulWidget {
 
   /// Builds a custom mention result.
   final Widget Function(MentionModel)? mentionItemBuilder;
+
+  /// Maximum finite mention-list height. Zero temporarily hides suggestions.
+  final double mentionListMaxHeight;
 
   /// Searches for mentions after the user enters `@`.
   final Future<List<MentionModel>> Function(String)? onMentionSearch;
@@ -147,6 +161,8 @@ class VMessageInputWidget extends StatefulWidget {
   const VMessageInputWidget({
     super.key,
     required this.onSubmitText,
+    this.textController,
+    this.onSubmitTextAccepted,
     required this.onSubmitMedia,
     required this.onSubmitVoice,
     required this.onSubmitFiles,
@@ -157,6 +173,7 @@ class VMessageInputWidget extends StatefulWidget {
     this.autofocus = false,
     this.focusNode,
     this.mentionItemBuilder,
+    this.mentionListMaxHeight = 200,
     this.maxRecordTime = const Duration(minutes: 30),
     this.onAttachIconPress,
     this.stopChatWidget,
@@ -179,7 +196,9 @@ class VMessageInputWidget extends StatefulWidget {
     this.controller,
     this.emojiPickerBuilder,
     this.recordingWidgetBuilder,
-  });
+  }) : assert(
+         mentionListMaxHeight >= 0 && mentionListMaxHeight < double.infinity,
+       );
 
   @override
   State<VMessageInputWidget> createState() => _VMessageInputWidgetState();
@@ -190,6 +209,8 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
   VComposerPanel? _pendingPanel;
   bool _hasDraftText = false;
   bool _isRecording = false;
+  int _recordingGeneration = 0;
+  int? _finishingRecordingGeneration;
   RoomTypingEnum _reportedActivity = RoomTypingEnum.stop;
   List<VAttachmentAction> _visibleAttachmentActions = const [];
   int _surfaceTransitionGeneration = 0;
@@ -205,6 +226,7 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
   late bool _ownsController;
   int _mentionSearchGeneration = 0;
   bool _showMentionList = false;
+  String? _lastMentionQuery;
 
   bool get _isSendButtonEnabled => _hasDraftText || _isRecording;
 
@@ -238,6 +260,13 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
     _focusNode = widget.focusNode ?? FocusNode();
     _ownsFocusNode = widget.focusNode == null;
     _attachController(widget.controller);
+    final external = widget.textController;
+    if (external != null) {
+      _textEditingController.value = external.value;
+      external.addListener(_externalTextChanged);
+    }
+    _hasDraftText = _textEditingController.text.isNotEmpty;
+    _lastMentionQuery = _mentionQueryAtCaret();
     _textEditingController.addListener(_textEditListener);
     _configureMentionSearch();
     _focusNode.addListener(_handleFocusChange);
@@ -246,6 +275,14 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
   @override
   void didUpdateWidget(covariant VMessageInputWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    final draftControllerChanged =
+        oldWidget.textController != widget.textController;
+    if (draftControllerChanged) {
+      _invalidateMentionSearch();
+      oldWidget.textController?.removeListener(_externalTextChanged);
+      widget.textController?.addListener(_externalTextChanged);
+      _externalTextChanged();
+    }
     if (oldWidget.focusNode != widget.focusNode) {
       _focusNode.removeListener(_handleFocusChange);
       if (_ownsFocusNode) {
@@ -259,11 +296,13 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
       _detachController();
       _attachController(widget.controller);
     }
-    if (oldWidget.onMentionSearch != widget.onMentionSearch) {
-      _configureMentionSearch();
-    }
     if (oldWidget.stopChatWidget == null && widget.stopChatWidget != null) {
       _resetComposer();
+    }
+    if (draftControllerChanged ||
+        oldWidget.onMentionSearch != widget.onMentionSearch ||
+        (oldWidget.stopChatWidget == null) != (widget.stopChatWidget == null)) {
+      _configureMentionSearch();
     }
     if ((!widget.enableEmojiPicker &&
             (_activePanel == VComposerPanel.emoji ||
@@ -300,6 +339,11 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
 
   @override
   Widget build(BuildContext context) {
+    _textEditingController.mentionStyle = context.vInputTheme.textFieldTextStyle
+        .copyWith(
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.w700,
+        );
     _activatePendingPanelWhenReady(MediaQuery.viewInsetsOf(context).bottom);
     if (widget.stopChatWidget != null) {
       return widget.stopChatWidget!;
@@ -414,7 +458,7 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
 
   Widget _buildMentionList() {
     return SizedBox(
-      height: 200,
+      height: widget.mentionListMaxHeight,
       child: ListView.builder(
         itemCount: _mentionsWithPhoto.length,
         itemBuilder: (context, index) {
@@ -423,6 +467,7 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
             _textEditingController.addMention(
               MentionData(id: mention.peerId, display: mention.name),
             );
+            if (_invalidateMentionSearch() && mounted) setState(() {});
           }
 
           if (widget.mentionItemBuilder != null) {
@@ -505,7 +550,7 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
   }
 
   VAttachmentPresentationController get _inlinePanelController =>
-      _AttachmentPanelController(
+      AttachmentPanelController(
         isPanelOpen: () =>
             mounted &&
             _activePanel == VComposerPanel.attachments &&
@@ -599,8 +644,8 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
     var isOpen = true;
     var returnToKeyboard = false;
     BuildContext? sheetContext;
-    late final _AttachmentPanelController panelController;
-    panelController = _AttachmentPanelController(
+    late final AttachmentPanelController panelController;
+    panelController = AttachmentPanelController(
       isPanelOpen: () => isOpen,
       selectAction: (action) async {
         final currentContext = sheetContext;
@@ -888,33 +933,77 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
   Future<void> _requestRecording() async {
     _closePanel();
     var isAllowed = await PermissionManager.isAllowRecord();
-    if (!mounted) return;
+    if (!mounted ||
+        widget.stopChatWidget != null ||
+        !widget.enableVoiceRecording) {
+      return;
+    }
     if (!isAllowed) {
       isAllowed = await PermissionManager.askForRecord();
     }
-    if (mounted && isAllowed) {
+    if (mounted &&
+        widget.stopChatWidget == null &&
+        widget.enableVoiceRecording &&
+        isAllowed) {
       _setRecording(true);
     }
   }
 
   Future<void> _finishRecording() async {
     final recordState = _recordStateKey.currentState;
-    if (recordState == null) return;
-    widget.onSubmitVoice(await recordState.stopRecord());
-    if (mounted) _setRecording(false);
+    final generation = _recordingGeneration;
+    if (recordState == null || _finishingRecordingGeneration == generation) {
+      return;
+    }
+    _finishingRecordingGeneration = generation;
+    bool isCurrentRecording() =>
+        mounted &&
+        widget.stopChatWidget == null &&
+        _isRecording &&
+        _recordingGeneration == generation &&
+        identical(_recordStateKey.currentState, recordState);
+    try {
+      final voice = await recordState.stopRecord();
+      if (!isCurrentRecording()) return;
+      widget.onSubmitVoice(voice);
+    } catch (error, stack) {
+      if (!isCurrentRecording()) return;
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'v_chat_input_ui',
+          context: ErrorDescription('while finishing voice recording'),
+        ),
+      );
+    } finally {
+      if (_finishingRecordingGeneration == generation) {
+        _finishingRecordingGeneration = null;
+      }
+      if (isCurrentRecording()) _setRecording(false);
+    }
   }
 
   Future<void> _submitCurrentValue() async {
+    if (widget.stopChatWidget != null) return;
     if (_isRecording) {
       await _finishRecording();
       return;
     }
     if (!_hasDraftText || _textEditingController.text.trim().isEmpty) return;
-    widget.onSubmitText(_textEditingController.markupText);
+    final accept = widget.onSubmitTextAccepted;
+    if (accept != null) {
+      if (!accept(_textEditingController.text)) return;
+    } else {
+      widget.onSubmitText(_textEditingController.markupText);
+    }
     _textEditingController.clear();
   }
 
   Future<void> _handleMentionSearch(String? value) async {
+    if (widget.stopChatWidget != null || value != _mentionQueryAtCaret()) {
+      return;
+    }
     final generation = ++_mentionSearchGeneration;
     final search = widget.onMentionSearch;
     if (value == null || search == null) {
@@ -942,10 +1031,36 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
     });
   }
 
+  bool _invalidateMentionSearch() {
+    ++_mentionSearchGeneration;
+    final changed = _showMentionList || _mentionsWithPhoto.isNotEmpty;
+    _showMentionList = false;
+    _mentionsWithPhoto.clear();
+    return changed;
+  }
+
+  String? _mentionQueryAtCaret() {
+    final value = _textEditingController.value;
+    final caret = value.selection.baseOffset;
+    if (caret < 0 || caret > value.text.length) return null;
+    return RegExp(r'(?:^|\s)@([^@\s]*)$')
+        .firstMatch(value.text.substring(0, caret))
+        ?.group(1);
+  }
+
+  void _primeMentionSearch() {
+    if (widget.stopChatWidget != null || widget.onMentionSearch == null) return;
+    final query = _mentionQueryAtCaret();
+    if (query != null) unawaited(_handleMentionSearch(query));
+  }
+
   void _configureMentionSearch() {
-    _textEditingController.onSearch = widget.onMentionSearch == null
+    _invalidateMentionSearch();
+    _textEditingController.onSearch =
+        widget.onMentionSearch == null || widget.stopChatWidget != null
         ? null
         : _handleMentionSearch;
+    _primeMentionSearch();
   }
 
   void _handleFocusChange() {
@@ -955,20 +1070,35 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
     }
   }
 
-  void _textEditListener() {
-    final hasDraftText = _textEditingController.text.isNotEmpty;
-    if (mounted && hasDraftText != _hasDraftText) {
-      setState(() {
-        _hasDraftText = hasDraftText;
-      });
-    } else {
-      _hasDraftText = hasDraftText;
+  void _externalTextChanged() {
+    final value = widget.textController?.value;
+    if (value != null && value != _textEditingController.value) {
+      _textEditingController.value = value;
+      _primeMentionSearch();
     }
+  }
+
+  void _textEditListener() {
+    final external = widget.textController;
+    if (external != null && external.value != _textEditingController.value) {
+      external.value = _textEditingController.value;
+    }
+    final query = _mentionQueryAtCaret();
+    var mentionListChanged = false;
+    if (query != _lastMentionQuery) {
+      _lastMentionQuery = query;
+      mentionListChanged = _invalidateMentionSearch();
+    }
+    final hasDraftText = _textEditingController.text.isNotEmpty;
+    final draftChanged = hasDraftText != _hasDraftText;
+    _hasDraftText = hasDraftText;
+    if (mounted && (draftChanged || mentionListChanged)) setState(() {});
     _updateReportedActivity();
   }
 
   void _setRecording(bool value) {
     if (_isRecording == value) return;
+    ++_recordingGeneration;
     setState(() {
       _isRecording = value;
     });
@@ -976,7 +1106,9 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
   }
 
   void _updateReportedActivity() {
-    final nextActivity = _isRecording
+    final nextActivity = widget.stopChatWidget != null
+        ? RoomTypingEnum.stop
+        : _isRecording
         ? RoomTypingEnum.recording
         : _hasDraftText
         ? RoomTypingEnum.typing
@@ -987,13 +1119,14 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
   }
 
   void _resetComposer() {
+    ++_recordingGeneration;
     ++_mentionSearchGeneration;
     ++_surfaceTransitionGeneration;
     _scheduledPendingGeneration = null;
     _textEditingController.removeListener(_textEditListener);
-    _textEditingController.clear();
+    if (widget.textController == null) _textEditingController.clear();
     _textEditingController.addListener(_textEditListener);
-    _hasDraftText = false;
+    _hasDraftText = _textEditingController.text.isNotEmpty;
     _isRecording = false;
     _activePanel = VComposerPanel.none;
     _pendingPanel = null;
@@ -1030,6 +1163,7 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
 
   @override
   void dispose() {
+    ++_recordingGeneration;
     ++_mentionSearchGeneration;
     ++_surfaceTransitionGeneration;
     if (_reportedActivity != RoomTypingEnum.stop) {
@@ -1037,6 +1171,7 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
     }
     _textEditingController.removeListener(_textEditListener);
     _textEditingController.onSearch = null;
+    widget.textController?.removeListener(_externalTextChanged);
     _textEditingController.dispose();
     _focusNode.removeListener(_handleFocusChange);
     if (_ownsFocusNode) {
@@ -1045,30 +1180,4 @@ class _VMessageInputWidgetState extends State<VMessageInputWidget> {
     _detachController();
     super.dispose();
   }
-}
-
-class _AttachmentPanelController implements VAttachmentPresentationController {
-  const _AttachmentPanelController({
-    required this.isPanelOpen,
-    required this.selectAction,
-    required this.closePanel,
-    required this.showComposerKeyboard,
-  });
-
-  final bool Function() isPanelOpen;
-  final Future<void> Function(VAttachmentAction action) selectAction;
-  final VoidCallback closePanel;
-  final VoidCallback showComposerKeyboard;
-
-  @override
-  bool get isOpen => isPanelOpen();
-
-  @override
-  Future<void> select(VAttachmentAction action) => selectAction(action);
-
-  @override
-  void close() => closePanel();
-
-  @override
-  void showKeyboard() => showComposerKeyboard();
 }

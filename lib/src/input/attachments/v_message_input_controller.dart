@@ -3,6 +3,7 @@
 // MIT license that can be found in the LICENSE file.
 
 import 'package:flutter/foundation.dart';
+
 import 'v_attachment_presentation.dart';
 
 /// Controls the optional panels owned by [VMessageInputWidget].

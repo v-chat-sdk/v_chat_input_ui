@@ -52,12 +52,16 @@ class RecordWidgetState extends State<RecordWidget> {
   StreamSubscription? _rawTime;
   bool _hasReachedMaxTime = false;
   bool _isClosed = false;
+  late final Future<bool> _startOperation;
+  Future<void>? _closeOperation;
+  Future<String?>? _stopOperation;
 
   @override
   void initState() {
     super.initState();
     _recorder = widget.recorderFactory?.call() ?? PlatformRecorder();
     _rawTime = _stopWatchTimer.rawTime.listen((value) {
+      if (_isClosed) return;
       _recordMilli = value;
       _currentTime = StopWatchTimer.getDisplayTime(
         value,
@@ -72,10 +76,30 @@ class RecordWidgetState extends State<RecordWidget> {
         unawaited(_completeAtMaxTime());
       }
     });
-    _start();
+    _startOperation = _start();
+    unawaited(
+      _startOperation.then<void>(
+        (started) {
+          if (!started && mounted && !_isClosed) widget.onCancel();
+        },
+        onError: (Object error, StackTrace stack) {
+          if (_isClosed) return;
+          FlutterError.reportError(
+            FlutterErrorDetails(
+              exception: error,
+              stack: stack,
+              library: 'v_chat_input_ui',
+              context: ErrorDescription('while starting voice recording'),
+            ),
+          );
+          if (mounted) widget.onCancel();
+        },
+      ),
+    );
   }
 
   void startCounterUp() {
+    if (_isClosed) return;
     if (_stopWatchTimer.isRunning) {
       _stopCounter();
     }
@@ -89,13 +113,14 @@ class RecordWidgetState extends State<RecordWidget> {
   }
 
   Future<void> pause() async {
+    if (_isClosed) return;
     _stopWatchTimer.onStopTimer();
     await _recorder?.pause();
   }
 
   Future<void> _completeAtMaxTime() async {
     await pause();
-    if (mounted) {
+    if (mounted && !_isClosed) {
       widget.onMaxTime();
     }
   }
@@ -109,14 +134,19 @@ class RecordWidgetState extends State<RecordWidget> {
     if (VPlatforms.isWindows || VPlatforms.isLinux || VPlatforms.isMacOs) {
       return false;
     }
+    final recorder = _recorder!;
     if (VPlatforms.isWeb) {
-      await _recorder!.start();
+      await recorder.start();
     } else {
       final path = await _getDir();
-      await _recorder!.start(path);
+      if (_isClosed) return false;
+      await recorder.start(path);
     }
-    await Future.delayed(const Duration(milliseconds: 200));
-    final isRecording = await _recorder!.isRecording();
+    if (_isClosed) return false;
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    if (_isClosed) return false;
+    final isRecording = await recorder.isRecording();
+    if (_isClosed) return false;
     if (isRecording) {
       startCounterUp();
       return true;
@@ -125,14 +155,28 @@ class RecordWidgetState extends State<RecordWidget> {
   }
 
   Future<MessageVoiceData> stopRecord() async {
+    if (_isClosed) throw StateError('The recorder is already closed.');
+    final started = await _startOperation;
+    if (_isClosed || !started) {
+      throw StateError('The recorder is not active.');
+    }
     _stopWatchTimer.onStopTimer();
-    await Future.delayed(const Duration(milliseconds: 10));
-    final path = await _recorder!.stop();
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    if (_isClosed) {
+      throw StateError('The recorder was closed before submission.');
+    }
+    final path = await _stopRecording();
+    if (_isClosed) {
+      throw StateError('The recorder was closed during submission.');
+    }
     if (path != null) {
       List<int>? bytes;
       if (VPlatforms.isWeb) {
         final xFile = XFile(path);
         bytes = await xFile.readAsBytes();
+      }
+      if (_isClosed) {
+        throw StateError('The recorder was closed while reading audio.');
       }
       final uri = Uri.parse(path);
       final data = MessageVoiceData(
@@ -227,17 +271,33 @@ class RecordWidgetState extends State<RecordWidget> {
 
   @override
   void dispose() {
-    close();
+    unawaited(close());
     super.dispose();
   }
 
-  Future<void> close() async {
-    if (_isClosed) return;
+  Future<void> close() => _closeOperation ??= _close();
+
+  Future<String?> _stopRecording() => _stopOperation ??= _recorder!.stop();
+
+  Future<void> _close() async {
     _isClosed = true;
-    _stopCounter();
-    await _recorder?.stop();
-    _stopWatchTimer.dispose();
-    _rawTime?.cancel();
-    await _recorder?.close();
+    await _stopCounter();
+    // A native start may finish after removal. Await it before issuing the
+    // shared stop operation, so neither removal nor Send can lose that race.
+    try {
+      try {
+        await _startOperation;
+      } catch (_) {
+        // Startup errors are reported by the initialization handler above.
+      }
+      await _stopRecording();
+    } finally {
+      try {
+        await _recorder?.close();
+      } finally {
+        await _rawTime?.cancel();
+        await _stopWatchTimer.dispose();
+      }
+    }
   }
 }
