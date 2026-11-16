@@ -25,10 +25,12 @@ screenshots:
     path: doc/screenshots/v_chat_input_ui_example.png
 
 environment:
-  sdk: ">=3.13.0 <4.0.0"
-  flutter: ">=3.47.0"
+  sdk: ^3.14.0
+  flutter: '>=3.50.0'
 
 dependencies:
+  material_ui: ^1.11.0
+  cupertino_ui: ^1.1.6
   flutter:
     sdk: flutter
   # Chewie consumers still require the identical 1.x icon font.

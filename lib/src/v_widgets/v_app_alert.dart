@@ -4,7 +4,7 @@
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:adaptive_dialog/adaptive_dialog.dart' as adaptive_dialog;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 abstract class VAppAlert {
   static void showErrorSnackBar({

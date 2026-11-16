@@ -2,8 +2,8 @@
 // All rights reserved. Use of this source code is governed by a
 // MIT license that can be found in the LICENSE file.
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:v_chat_input_ui/src/models/v_input_theme.dart';
 import 'package:v_chat_mention_controller/v_chat_mention_controller.dart';
 import 'package:v_platform/v_platform.dart';

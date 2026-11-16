@@ -3,7 +3,7 @@
 // MIT license that can be found in the LICENSE file.
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class VCircleAvatar extends StatelessWidget {
   final int radius;

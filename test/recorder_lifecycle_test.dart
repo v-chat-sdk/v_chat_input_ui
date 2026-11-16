@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:v_chat_input_ui/src/recorder/record_widget.dart';
 import 'package:v_platform/v_platform.dart';

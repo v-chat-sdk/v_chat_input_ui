@@ -2,7 +2,7 @@
 // All rights reserved. Use of this source code is governed by a
 // MIT license that can be found in the LICENSE file.
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Replaces the built-in emoji picker while preserving composer behavior.
 typedef VEmojiPickerBuilder = Widget Function(

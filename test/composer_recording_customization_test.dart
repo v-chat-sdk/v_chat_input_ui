@@ -2,8 +2,8 @@
 // All rights reserved. Use of this source code is governed by a
 // MIT license that can be found in the LICENSE file.
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:v_chat_input_ui/src/input/widgets/message_record_btn.dart';
 import 'package:v_chat_input_ui/src/input/widgets/message_send_btn.dart';

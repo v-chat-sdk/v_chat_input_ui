@@ -3,7 +3,7 @@
 // MIT license that can be found in the LICENSE file.
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:v_platform/v_platform.dart';
 
 import '../../models/models.dart';
